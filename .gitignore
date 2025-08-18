@@ -1,0 +1,18 @@
+# General patterns
+*.DS_store
+*.ipynb_checkpoints*
+*__pycache__*
+*.so
+*.a
+.coverage*
+*.pytest_cache
+htmlcov
+dist
+build
+*.egg*
+*.whl
+CMakeCache.txt
+CMakeFiles
+install_manifest.txt
+cmake_install.cmake
+wheelhouse
