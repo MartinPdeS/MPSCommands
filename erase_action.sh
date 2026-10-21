@@ -50,6 +50,7 @@ delete_workflow_run() {
 fetch_and_process_runs() {
   local page=1
   local offset=0
+  local all_run_ids=""
 
   while :; do
     echo "Fetching page $page..."
@@ -72,21 +73,23 @@ fetch_and_process_runs() {
       break
     fi
 
-    # Process each run ID
-    while read -r run_id; do
-      offset=$((offset + 1))
-      if [ -n "$run_id" ]; then
-        if [ "$offset" -le "$KEEP_N" ]; then
-          echo "Skipping workflow run ID: $run_id (within the most recent $KEEP_N runs)"
-        else
-          delete_workflow_run "$run_id"
-        fi
-      fi
-    done <<< "$run_ids"
+    # Collect all IDs before deleting anything. Deleting while paging shifts
+    # later pages and can otherwise leave runs behind.
+    all_run_ids+="$run_ids"$'\n'
 
     # Increment the page number
     page=$((page + 1))
   done
+
+  while read -r run_id; do
+    [ -n "$run_id" ] || continue
+    offset=$((offset + 1))
+    if [ "$offset" -le "$KEEP_N" ]; then
+      echo "Skipping workflow run ID: $run_id (within the most recent $KEEP_N runs)"
+    else
+      delete_workflow_run "$run_id"
+    fi
+  done <<< "$all_run_ids"
 }
 
 # Fetch and process workflow runs
