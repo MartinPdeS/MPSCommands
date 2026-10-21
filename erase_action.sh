@@ -15,7 +15,7 @@ if [ -z "$GITHUB_TOKEN" ] || [ -z "$OWNER" ]; then
 fi
 
 REPO=$1
-KEEP_N=4  # Default number of most recent workflow runs to keep
+KEEP_N=8  # Default number of most recent workflow runs to keep
 
 if [ -z "$REPO" ]; then
   echo "Usage: $0 <repo_name> [keep_n]"
@@ -27,8 +27,6 @@ fi
 if [ -n "$2" ]; then
   KEEP_N=$2
 fi
-
-API_URL="https://api.github.com/repos/$OWNER/$REPO/actions/runs"
 
 echo "OWNER: $OWNER"
 echo "REPO: $REPO"
