@@ -35,13 +35,17 @@ echo "REPO: $REPO"
 echo "GITHUB_TOKEN: ${GITHUB_TOKEN:0:4}..."
 echo "Number of recent runs to keep: $KEEP_N"
 
+# Use gh's token handling instead of putting the token in curl's process
+# arguments. This keeps the credential out of the local process list.
+github_api() {
+  GH_TOKEN="$GITHUB_TOKEN" gh api "$@"
+}
+
 # Function to delete a workflow run
 delete_workflow_run() {
   local run_id=$1
   echo "Deleting workflow run ID: $run_id"
-  curl -X DELETE -s -H "Authorization: token $GITHUB_TOKEN" \
-       -H "Accept: application/vnd.github.v3+json" \
-       "$API_URL/$run_id"
+  github_api --method DELETE "repos/$OWNER/$REPO/actions/runs/$run_id" >/dev/null
 }
 
 # Function to fetch and process workflow runs with pagination
@@ -51,9 +55,7 @@ fetch_and_process_runs() {
 
   while :; do
     echo "Fetching page $page..."
-    response=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
-                     -H "Accept: application/vnd.github.v3+json" \
-                     "$API_URL?per_page=100&page=$page")
+    response=$(github_api "repos/$OWNER/$REPO/actions/runs?per_page=100&page=$page")
 
     # Save the response for debugging if invalid
     if ! echo "$response" | jq . > /dev/null 2>&1; then
